@@ -43,12 +43,12 @@ class PercolationPlayer:
 		# 		allyvertices = 0
 		# 		opponentvertices = 0
 		# 		for edge in getEdges(graph, vertex):
-		# 			if getOtherVertex(edge, vertex) == player:
+		# 			if getOtherVertex(edge, vertex) == player or getOtherVertex(edge, vertex) == -1:
 		# 				allyvertices+=1
 		# 			else:
 		# 				opponentvertices+=1
-		# 		if opponentvertices - allyvertices >= difference:
-		# 			difference = opponentvertices - allyvertices
+		# 		if allyvertices - opponentvertices >= difference:
+		# 			difference = allyvertices - opponentvertices
 		# 			bestvertex = vertex
 		# return bestvertex
 
@@ -68,21 +68,6 @@ class PercolationPlayer:
 		# 			bestvertex = vertex
 		# return bestvertex
 
-		vertexPresent = False
-		for vertex in graph.V:
-			if vertex.color == player:
-				vertexPresent = True
-
-		if vertexPresent == False:
-			maxEdges = 0
-			maxEdgeVertex = None
-			for vertex in graph.V:
-				if vertex.color == -1:
-					if len(getEdges(graph, vertex)) >= maxEdges:
-						maxEdges = len(getEdges(graph, vertex))
-						maxEdgeVertex = vertex
-			return maxEdgeVertex
-
 		bestvertex = None
 		maxdegreevertex = -100
 		for vertex in graph.V:
@@ -92,13 +77,32 @@ class PercolationPlayer:
 				for edge in getEdges(graph, vertex):
 					if getOtherVertex(edge, vertex).color == player or getOtherVertex(edge,vertex).color != -1:
 						degreevertex-=1
-						valid = True
-				if (degreevertex >= maxdegreevertex and valid == True) or bestvertex == None:
+						if getOtherVertex(edge, vertex).color == player:
+							valid = True
+				if (degreevertex >= maxdegreevertex and valid == True):
 					maxdegreevertex = degreevertex
 					bestvertex = vertex
+			elif vertex.color == player:
+				pass
+			else:
+				edges = getEdges(graph, vertex)
+				if len(edges) == 1:
+					if getOtherVertex(edges[0], vertex) == -1:
+						print("used")
+						return getOtherVertex(edges[0], vertex)
+
+
+		if bestvertex == None:
+			maxEdges = 0
+			maxEdgeVertex = None
+			for vertex in graph.V:
+				if vertex.color == -1:
+					if len(getEdges(graph, vertex)) >= maxEdges:
+						maxEdges = len(getEdges(graph, vertex))
+						maxEdgeVertex = vertex
+			return maxEdgeVertex
 
 		return bestvertex
-
 
 
 		# return random.choice([v for v in graph.V if v.color == -1])
@@ -108,9 +112,10 @@ class PercolationPlayer:
 	# Should return a vertex `v` from graph.V where v.color == player
 	def ChooseVertexToRemove(graph, player):
 		
-		maxdifference = -100
+		mindifference = -100000000000
 		bestvertex = None
 		
+		vertices = []
 		for vertex in graph.V:
 			if vertex.color == player:
 				if getEdges(graph, vertex) == list(graph.E):
@@ -123,10 +128,67 @@ class PercolationPlayer:
 					else:
 						allyvertices+=1
 
-				if (opponentvertices - allyvertices) >= maxdifference:
-					maxdifference = opponentvertices - allyvertices
-					bestvertex = vertex
+				vertices.append(opponentvertices - allyvertices)
+			# 	if (opponentvertices - allyvertices) >= maxdifference:
+			# 		maxdifference = opponentvertices - allyvertices
+			# 		bestvertex = vertex
+			# else:
+			# 	edges = getEdges(graph, vertex)
+			# 	if len(edges) == 1:
+			# 		if getOtherVertex(edges[0], vertex).color == -1:
+			# 			print("used")
+			# 			return getOtherVertex(edges[0], vertex)
 
+		
+
+		vertices.sort()
+		if vertices[len(vertices) - 1] < 0:
+			maxdifference = -10000000
+			for vertex in graph.V:
+				if vertex.color == player:
+					if getEdges(graph, vertex) == list(graph.E):
+						return vertex
+					opponentvertices = 0
+					allyvertices = 0
+					for edge in getEdges(graph, vertex):
+						if getOtherVertex(edge, vertex).color != player:
+							opponentvertices+=1
+						else:
+							allyvertices+=1
+
+					if (opponentvertices - allyvertices) >= maxdifference:
+						maxdifference = opponentvertices - allyvertices
+						bestvertex = vertex
+				else:
+					edges = getEdges(graph, vertex)
+					if len(edges) == 1:
+						if getOtherVertex(edges[0], vertex).color == -1:
+							print("used")
+							return getOtherVertex(edges[0], vertex)
+		else:
+			maxdifference = 10000000
+			for vertex in graph.V:
+				if vertex.color == player:
+					if getEdges(graph, vertex) == list(graph.E):
+						return vertex
+					opponentvertices = 0
+					allyvertices = 0
+					for edge in getEdges(graph, vertex):
+						if getOtherVertex(edge, vertex).color != player:
+							opponentvertices+=1
+						else:
+							allyvertices+=1
+
+					if (opponentvertices - allyvertices) < maxdifference and (opponentvertices - allyvertices) >= 0:
+						maxdifference = opponentvertices - allyvertices
+						bestvertex = vertex
+				else:
+					edges = getEdges(graph, vertex)
+					if len(edges) == 1:
+						if getOtherVertex(edges[0], vertex).color == -1:
+							print("used")
+							return getOtherVertex(edges[0], vertex)
+			
 		return bestvertex
 
 
